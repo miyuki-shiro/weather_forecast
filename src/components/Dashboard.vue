@@ -5,6 +5,7 @@
     .icons2 { margin: 1em 0em; }
     .iconlabel { font-size: 1.2em; text-transform: capitalize; }
     .iconlabelmargin { margin: 0em 2.5em 0em 0.5em; }
+    .error { margin-top: 3em; }
 </style>
 
 <template>
@@ -23,9 +24,13 @@
                         <p class="control"><button class="button is-primary" @click="getWeather">Search</button></p>
                     </b-field>
                     
-                    <div v-if="loading" style="margin-top: 2em" class="has-text-centered">
+                    <div v-if="loading" class="error has-text-centered">
                          <b-icon pack="fas" icon="spinner" size="is-large" custom-class="fa-pulse"></b-icon>
                          <br><p>Loading</p>
+                    </div>
+                    <div v-if="cerror" class="error has-text-centered">
+                        <b-icon icon="alert-circle" size="is-medium" type="is-primary"></b-icon>
+                        <br><p>Nothing found. Try again...</p>
                     </div>
                 </div>
             </div>
@@ -61,9 +66,13 @@
             </b-tab-item>
 
             <b-tab-item label="Next five days...">
-                <div v-show="chart != ''" style="padding: 0em; margin: 0em;">
+                <div v-show="chart != null" style="padding: 0em; margin: 0em;">
                     <canvas id="myChart"></canvas>
                 </div>
+                <div v-if="ferror" class="error has-text-centered">
+                        <b-icon icon="alert-circle" size="is-medium" type="is-primary"></b-icon>
+                        <br><p>Nothing found. Try again...</p>
+                    </div>
             </b-tab-item>
         </b-tabs>
     </div>
@@ -86,8 +95,8 @@ export default {
     name: 'app',
     data() {
         return {
-            loading: false, place: '', c: '', f: '', 
-            iconRes: '', iconSet: '',
+            loading: false, place: '', c: '', f: '', cerror: '', ferror: '',
+            iconRes: '', iconSet: '', 
             options: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' },
             currentTemp: '', minTemp: '', maxTemp:'', sunrise: '', sunset: '', pressure: '', humidity: '', 
                 wind: '', overcast: '', today: '', location: '',             
@@ -111,7 +120,7 @@ export default {
                 { value: '50d', name:'weather-fog' }, 
                 { value: '50n', name:'weather-fog' }
             ],
-            dates: [], temps: [], chart: '', 
+            dates: [], temps: [], chart: null, 
         }
     },
     created() {
@@ -119,6 +128,7 @@ export default {
     },
     methods: { 
         getWeather: function() {
+            this.c = '', this.cerror = ''
             axios.get(CURRENT_WEATHER_BASE_URL + this.place + CURRENT_WEATHER_LAST_URL)
                 .then(response => {
                     this.c = response
@@ -140,10 +150,13 @@ export default {
                         }
                     });
                 })
+                .catch(error => { this.cerror = error; })
                 .finally(() => (this.loading = false))
                 this.getForecast()
         },
         getForecast: function() {      
+            this.f = '', this.ferror = ''
+            if (this.chart != null) { this.chart.destroy(); }
             axios.get(CURRENT_FORECAST_BASE_URL + this.place + CURRENT_WEATHER_LAST_URL)
                 .then(response => { 
                     this.f = response
@@ -204,6 +217,7 @@ export default {
                         }
                     });
                 })
+                .catch(error => { this.ferror = error; })
                 .finally(() => (this.loading = false))
         },
     }
