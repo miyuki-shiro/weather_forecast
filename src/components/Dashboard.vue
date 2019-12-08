@@ -1,15 +1,14 @@
 <style>
-    .container { padding: 1em; }
+    #app { padding: 0em 2em; }
     .cwicon { position: relative; left: 30px; font-size: 8em; }
     .icons1 { margin-left: 6em; position: relative; bottom: 50px; }
     .icons2 { margin: 1em 0em; }
     .iconlabel { font-size: 1.2em; text-transform: capitalize; }
     .iconlabelmargin { margin: 0em 2.5em 0em 0.5em; }
-    /*.b-tabs .tab-content { padding: 2em; }*/
 </style>
 
 <template>
-    <div class="container">
+    <div id="app">
         <section class="section section-padding">
             <div class="has-text-centered">
                 <h1 class="title">Chilean Weather</h1>
@@ -32,10 +31,10 @@
             </div>
         </section>    
 
-        <b-tabs type="is-boxed" position="is-centered" expanded>
+        <b-tabs v-show="c != ''" type="is-boxed" position="is-centered" expanded>
             <b-tab-item label="Current Weather">
-                <div v-if="c" class="columns section">
-                    <div class="column is-half is-7 is-flex" style="padding-top: 4em">
+                <div class="columns section">
+                    <div class="column is-half is-7 is-flex has-text-centered" style="padding-top: 4em">
                         <b-icon :icon=iconSet type="is-primary" class="cwicon" size="is-large"></b-icon>
                         <div class="icons1">
                             <p style="font-size: 4em">{{currentTemp}}</p>
@@ -62,7 +61,7 @@
             </b-tab-item>
 
             <b-tab-item label="Next five days...">
-                <div v-show="chart != null" style="padding: 0em; margin: 0em;">
+                <div v-show="chart != ''" style="padding: 0em; margin: 0em;">
                     <canvas id="myChart"></canvas>
                 </div>
             </b-tab-item>
@@ -84,11 +83,14 @@ const customIconConfig = {
 }
 
 export default {
+    name: 'app',
     data() {
         return {
-            loading: false, place: '', iconRes: '', iconSet: '', today: '', c: '', f: '', location: '',
+            loading: false, place: '', c: '', f: '', 
+            iconRes: '', iconSet: '',
             options: { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' },
-            currentTemp: '', minTemp: '', maxTemp:'', sunrise: '', sunset: '', pressure: '', humidity: '', wind: '', overcast: '',             
+            currentTemp: '', minTemp: '', maxTemp:'', sunrise: '', sunset: '', pressure: '', humidity: '', 
+                wind: '', overcast: '', today: '', location: '',             
             icons: [
                 { value: '01d', name:'weather-sunny' }, 
                 { value: '01n', name:'weather-night' }, 
@@ -138,18 +140,17 @@ export default {
                         }
                     });
                 })
-            
-                .finally(() => (this.loading = false));
+                .finally(() => (this.loading = false))
                 this.getForecast()
         },
         getForecast: function() {      
             axios.get(CURRENT_FORECAST_BASE_URL + this.place + CURRENT_WEATHER_LAST_URL)
                 .then(response => { 
-                    this.f = response; 
-                    this.dates = response.data.list.map(list => { return list.dt_txt; });
-                    this.temps = response.data.list.map(list => { return list.main.temp; });
+                    this.f = response
+                    this.dates = response.data.list.map(list => { return list.dt_txt; })
+                    this.temps = response.data.list.map(list => { return list.main.temp; })
 
-                    var ctx = document.getElementById("myChart");
+                    var ctx = document.getElementById("myChart")
                     this.chart = new Chart(ctx, {
                         type: "line",
                         data: {
@@ -166,10 +167,10 @@ export default {
                             tooltips: {
                                 callbacks: {
                                     label: function(tooltipItem, data) {
-                                        var label = data.datasets[tooltipItem.datasetIndex].label || "";
-                                        if (label) { label += ": "; }
-                                        label += Math.floor(tooltipItem.yLabel);
-                                        return label + "°C";
+                                        var label = data.datasets[tooltipItem.datasetIndex].label || ""
+                                        if (label) { label += ": " }
+                                        label += Math.floor(tooltipItem.yLabel)
+                                        return label + "°C"
                                     }
                                 }
                             },
@@ -196,14 +197,14 @@ export default {
                                     },
                                     ticks: {
                                         maxTicksLimit: 5,
-                                        callback: function(value) { return value + "°C"; }
+                                        callback: function(value) { return value + "°C" }
                                     }
                                 }]
                             }
                         }
                     });
                 })
-                .finally(() => (this.loading = false));
+                .finally(() => (this.loading = false))
         },
     }
     
